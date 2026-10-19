@@ -21,15 +21,16 @@ export default async function Me({ searchParams }: { searchParams: Promise<{ tab
 
   return (
     <>
-      <h1 className="text-[26px] font-extrabold pt-5">내 활동</h1>
+      <div className="mx-auto max-w-[720px]">
+      <h1 className="text-[26px] lg:text-[30px] font-extrabold pt-5">내 활동</h1>
       <p className="mt-1 text-text-2 text-[15px]">이 브라우저에서 올린 글과 지원이에요.</p>
 
       <div role="tablist" aria-label="내 활동" className="mt-5 grid grid-cols-2 rounded-2xl bg-surface p-1">
-        {[["posts", "내 모집", postUnread, posts.length], ["apps", "내 지원", appUnread, applications.length]].map(([k, l, u, n]) => {
+        {[["posts", "내가 연 스터디", postUnread, posts.length], ["apps", "내가 손 든 스터디", appUnread, applications.length]].map(([k, l, u, n]) => {
           const on = (k === "posts") === isPosts;
           return (
             <Link key={k as string} href={`/me?tab=${k}`} role="tab" aria-selected={on}
-              className={`btn btn-sm !min-h-11 ${on ? "!bg-primary-soft text-primary" : "!bg-transparent text-text-2"}`}>
+              className={`btn btn-sm !min-h-11 ${on ? "!bg-primary-soft text-primary-ink" : "!bg-transparent text-text-2"}`}>
               {l} {n as number}
               {(u as number) > 0 ? <span className="ml-1 inline-block size-2 rounded-full bg-danger" aria-label="새 소식 있음" /> : null}
             </Link>
@@ -50,7 +51,7 @@ export default async function Me({ searchParams }: { searchParams: Promise<{ tab
                         {p.unread ? <span className="badge badge-red">새 소식 {p.unread}</span> : null}
                       </div>
                       <p className="font-bold text-[17px] truncate">{p.title}</p>
-                      <p className="text-[14px] text-text-3 mt-0.5">대기 {p.pending_count} · 수락 {p.accepted_count} · {timeAgo(p.created_at)}</p>
+                      <p className="text-[14px] text-text-3 mt-0.5">확인 중 {p.pending_count} · 함께해요 {p.accepted_count} · {timeAgo(p.created_at)}</p>
                     </div>
                     <ChevronRight className="text-text-3 shrink-0" aria-hidden />
                   </Link>
@@ -71,7 +72,7 @@ export default async function Me({ searchParams }: { searchParams: Promise<{ tab
                       {a.unread ? <span className="badge badge-red">새 소식</span> : null}
                     </div>
                     <p className="font-bold text-[17px] truncate">{a.post_title}</p>
-                    <p className="text-[14px] text-text-3 mt-0.5 line-clamp-1">{a.unread && a.latest_news ? a.latest_news : `${a.applicant_nickname} · ${timeAgo(a.created_at)} 지원`}</p>
+                    <p className="text-[14px] text-text-3 mt-0.5 line-clamp-1">{a.unread && a.latest_news ? a.latest_news : `${a.applicant_nickname} · ${timeAgo(a.created_at)}`}</p>
                   </div>
                   <ChevronRight className="text-text-3 shrink-0" aria-hidden />
                 </Link>
@@ -79,7 +80,7 @@ export default async function Me({ searchParams }: { searchParams: Promise<{ tab
             ))}
           </ul>
         ) : (
-          <Empty text="이 브라우저로 지원한 스터디가 없어요" cta={<Link href="/" className="btn btn-primary">보드 둘러보기</Link>} />
+          <Empty text="이 브라우저로 손 든 스터디가 없어요" cta={<Link href="/" className="btn btn-primary">보드 둘러보기</Link>} />
         )}
       </div>
 
@@ -92,6 +93,7 @@ export default async function Me({ searchParams }: { searchParams: Promise<{ tab
           이 브라우저에서 내 기록 지우기
         </ActionButton>
       </section>
+      </div>
     </>
   );
 }

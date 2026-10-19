@@ -1,4 +1,6 @@
-# 스터디보드 — 가입 없는 스터디 모집 보드
+# 모여봄 — 혼자 말고, 모여 봄.
+
+> 가입 없이 링크 하나로, 같이 공부할 사람을 찾는 커뮤니티 스터디 보드
 
 캠프·커뮤니티 구성원이 **가입 없이 링크 하나로** 스터디를 모집하고 지원하는 웹 서비스입니다.
 기획 문서: `07_PRD 만들어보기/16_스터디_매칭보드/스터디매칭보드_PRD_v0.3.md`
@@ -9,7 +11,9 @@
 - 운영자: `/admin` (숨김·비밀번호 초기화·신고 처리·파일럿 후 전체 삭제)
 
 ## 기술 스택
-Next.js 16 (App Router, Server Actions) · PostgreSQL(Supabase 권장) · Tailwind CSS 4 · Pretendard · Vercel 배포
+Next.js 16 (App Router, Server Actions) · PostgreSQL(Supabase 권장) · Tailwind CSS 4 · SUIT · Vercel 배포
+
+브랜드: 이름 **모여봄**, 대표 색 봄볕 코랄 `#C9492A`(다크 `#FF8A63`) + 새싹 그린, 글꼴 **SUIT Variable**(SIL OFL 1.1, `src/app/fonts/SUIT-LICENSE.txt`), 해요체. `service-branding` 스킬로 정했어요.
 
 디자인: `ui-ux-pro-max` 스킬의 디자인 시스템(Minimalism & Swiss, 대비 4.5:1, 오류 요약 포커스 등) + `emil-design-eng` 원칙(눌림 scale 0.97, 강한 ease-out, 300ms 이하, reduced-motion) + 토스풍 원칙(큰 제목, 한 화면 한 행동). **토스 TDS 컴포넌트는 앱인토스 전용 라이선스라 사용하지 않았고 모든 UI는 자체 구현**입니다.
 
@@ -27,7 +31,7 @@ Next.js 16 (App Router, Server Actions) · PostgreSQL(Supabase 권장) · Tailwi
 1. https://github.com/new 에서 새 저장소(Private 권장) 생성
 2. 이 폴더에서:
    ```bash
-   git init && git add . && git commit -m "스터디보드 첫 배포"
+   git init && git add . && git commit -m "모여봄 첫 배포"
    git branch -M main
    git remote add origin https://github.com/<내아이디>/<저장소이름>.git
    git push -u origin main

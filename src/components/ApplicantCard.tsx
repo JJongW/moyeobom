@@ -45,24 +45,24 @@ export function ApplicantCard({
         <AppStatusBadge status={a.status} />
       </div>
       <p className="text-[13px] text-text-3 mt-0.5">
-        {a.createdLabel} 지원{a.waitingLong ? <span className="ml-2 badge badge-orange">3일째 대기</span> : null}
+        {a.createdLabel} 손 들었어요{a.waitingLong ? <span className="ml-2 badge badge-orange">3일째 기다리는 중</span> : null}
       </p>
       <p className="mt-3 rounded-xl bg-surface-2 p-3 text-[15px] whitespace-pre-wrap">{a.message}</p>
       {a.reason ? <p className="mt-2 text-sm text-text-3">메모: {a.reason}</p> : null}
 
       {a.status === "pending" ? (
         <div className="mt-4 grid grid-cols-[1fr_2fr] gap-2">
-          <Sheet title={`${a.nickname}님 지원 거절`} trigger="거절" triggerClassName="btn btn-ghost">
+          <Sheet title={`${a.nickname}님에게 다음을 기약하기`} trigger="다음에" triggerClassName="btn btn-ghost">
             {() => (
               <form action={rejAction} className="space-y-4">
                 <div>
                   <label className="field-label" htmlFor={`rr-${a.id}`}>방장 메모 <span className="font-normal text-text-3">(선택, 100자)</span></label>
-                  <input id={`rr-${a.id}`} name="reason" className="input" maxLength={100} placeholder="예) 이번엔 시간대가 맞지 않아요" />
+                  <input id={`rr-${a.id}`} name="reason" className="input" maxLength={100} placeholder="예) 이번엔 시간대가 맞지 않았어요. 다음에 꼭 같이 해요!" />
                 </div>
                 <label className="flex items-center gap-3 text-[15px] font-semibold">
-                  <input type="checkbox" name="reasonVisible" className="size-5 accent-[var(--primary)]" /> 지원자에게 메모 보여 주기
+                  <input type="checkbox" name="reasonVisible" className="size-5 accent-[var(--primary)]" /> 상대에게 메모 보여 주기
                 </label>
-                <SubmitButton className="btn btn-danger btn-lg w-full">거절하기</SubmitButton>
+                <SubmitButton className="btn btn-ghost btn-lg w-full">전하기</SubmitButton>
               </form>
             )}
           </Sheet>
@@ -78,7 +78,7 @@ export function ApplicantCard({
               router.refresh();
             })}
           >
-            {canAccept ? "수락" : "정원이 찼어요"}
+            {canAccept ? "함께하기" : "자리가 다 찼어요"}
           </button>
         </div>
       ) : null}
@@ -97,7 +97,7 @@ export function ApplicantCard({
                 router.refresh();
               })}
             >
-              수락 되돌리기
+              되돌리기
             </button>
           ) : null}
           <Sheet title={`${a.nickname}님 내보내기`} trigger="내보내기" triggerClassName="btn btn-ghost flex-1">

@@ -39,11 +39,12 @@ async def fill_post(page, title, capacity="3", mode="offline"):
 
 async def apply(page, pid, nick, secret="ap1234", msg="안녕하세요! 꾸준히 참여하고 싶어요. 수요일 저녁 가능합니다."):
     await page.goto(f"{BASE}/posts/{pid}")
-    await page.get_by_role("button", name="지원하기", exact=True).click()
-    await page.fill("#ap-nick", nick)
-    await page.fill("#ap-msg", msg)
-    await page.fill("#ap-secret", secret)
-    await page.get_by_role("button", name="지원 보내기").click()
+    await page.get_by_role("button", name="같이 할래요", exact=True).click()
+    dlg = page.locator("dialog[open]")
+    await dlg.get_by_label("닉네임").fill(nick)
+    await dlg.get_by_label("방장에게 한마디").fill(msg)
+    await dlg.get_by_label("확인 비밀번호").fill(secret)
+    await dlg.get_by_role("button", name="손 들기").click()
 
 async def main():
     async with async_playwright() as p:
@@ -71,7 +72,7 @@ async def main():
         pid = await fill_post(a, "퇴근 후 SQL 기초 4주 완주", capacity="3")
         ok("모집글 작성 후 상세 이동", len(pid) == 36)
         await expect(a.get_by_text("모집글이 올라갔어요")).to_be_visible()
-        ok("작성자에게 관리 패널", await a.get_by_role("link", name=re.compile("지원자 관리")).count() == 1)
+        ok("작성자에게 관리 패널", await a.get_by_role("link", name=re.compile("손 든 사람")).count() == 1)
         ok("작성자에게 연락방 링크 보임", await a.get_by_text(CONTACT).count() >= 1)
         await a.screenshot(path=f"{SHOTS}/03_detail_author.png", full_page=True)
 
@@ -89,8 +90,8 @@ async def main():
         html = await resp.text()
         ok("방문자 HTML에 연락 링크 없음", CONTACT not in html)
         ok("방문자 HTML에 해시 없음", "scrypt$" not in html)
-        await v.get_by_role("button", name="지원하기", exact=True).wait_for()
-        ok("로그인 없이 상세 열람 + 지원 버튼", await v.get_by_role("button", name="지원하기", exact=True).count() == 1)
+        await v.get_by_role("button", name="같이 할래요", exact=True).wait_for()
+        ok("로그인 없이 상세 열람 + 지원 버튼", await v.get_by_role("button", name="같이 할래요", exact=True).count() == 1)
         await v.screenshot(path=f"{SHOTS}/04_detail_visitor.png", full_page=True)
         await v.goto(BASE + "/")
         await v.screenshot(path=f"{SHOTS}/05_board.png", full_page=True)
@@ -98,23 +99,24 @@ async def main():
         # 4. 지원 A
         ca = await new_ctx(b, ip="10.0.0.2"); pa = await ca.new_page()
         await apply(pa, pid, "지원자A")
-        await expect(pa.get_by_text("방장이 수락하면").first).to_be_visible()
+        await expect(pa.get_by_text("방장이 확인하면").first).to_be_visible()
         await pa.screenshot(path=f"{SHOTS}/06_apply_done.png")
         await pa.goto(f"{BASE}/posts/{pid}")
-        ok("지원자 A 대기 상태 표시", await pa.get_by_text("결과 대기").count() >= 1)
+        ok("지원자 A 대기 상태 표시", await pa.get_by_text("확인 중").count() >= 1)
 
         # 5. 지원 B: 같은 닉네임 거부 → 다른 닉네임
         cb = await new_ctx(b, ip="10.0.0.3"); pb = await cb.new_page()
         await apply(pb, pid, "지원자A")
         await expect(pb.get_by_text("이 글에서 이미 쓰고 있는 닉네임이에요").first).to_be_visible()
         ok("같은 글 닉네임 중복 거부", True)
-        await pb.fill("#ap-nick", "지원자B"); await pb.fill("#ap-msg", "저도 함께하고 싶어요. 열심히 할게요!"); await pb.fill("#ap-secret", "bb1234")
-        await pb.get_by_role("button", name="지원 보내기").click()
-        await expect(pb.get_by_text("방장이 수락하면").first).to_be_visible()
+        dlg = pb.locator("dialog[open]")
+        await dlg.get_by_label("닉네임").fill("지원자B"); await dlg.get_by_label("방장에게 한마디").fill("저도 함께하고 싶어요. 열심히 할게요!"); await dlg.get_by_label("확인 비밀번호").fill("bb1234")
+        await dlg.get_by_role("button", name="손 들기").click()
+        await expect(pb.get_by_text("방장이 확인하면").first).to_be_visible()
         # 지원 C
         cc = await new_ctx(b, ip="10.0.0.4"); pc = await cc.new_page()
         await apply(pc, pid, "지원자C")
-        await expect(pc.get_by_text("방장이 수락하면").first).to_be_visible()
+        await expect(pc.get_by_text("방장이 확인하면").first).to_be_visible()
 
         # 6. 방장: 새 소식 배지
         await a.goto(BASE + "/")
@@ -125,15 +127,15 @@ async def main():
         await a.goto(f"{BASE}/posts/{pid}/applicants")
         await a.screenshot(path=f"{SHOTS}/07_applicants.png", full_page=True)
         cardA = a.locator("li.card", has_text="지원자A")
-        await cardA.get_by_role("button", name="수락", exact=True).click()
-        await expect(cardA.get_by_text("수락됨")).to_be_visible()
+        await cardA.get_by_role("button", name="함께하기", exact=True).click()
+        await expect(cardA.get_by_text("함께해요")).to_be_visible()
         ok("수락 처리", True)
         # 되돌리기
-        await cardA.get_by_role("button", name="수락 되돌리기").click()
-        await expect(cardA.get_by_text("결과 대기")).to_be_visible()
+        await cardA.get_by_role("button", name="되돌리기").click()
+        await expect(cardA.get_by_text("확인 중")).to_be_visible()
         ok("수락 되돌리기", True)
-        await cardA.get_by_role("button", name="수락", exact=True).click()
-        await expect(cardA.get_by_text("수락됨")).to_be_visible()
+        await cardA.get_by_role("button", name="함께하기", exact=True).click()
+        await expect(cardA.get_by_text("함께해요")).to_be_visible()
 
         # 8. 동시 수락 경합: 남은 자리 1에 B·C를 동시에
         author2 = await new_ctx(b, ip="10.0.0.5"); a2 = await author2.new_page()
@@ -146,8 +148,8 @@ async def main():
         await a.goto(f"{BASE}/posts/{pid}/applicants")
         ok("다른 기기에서 관리 비밀번호로 방장 확인", await a2.locator("li.card", has_text="지원자B").count() == 1)
         await asyncio.gather(
-            a.locator("li.card", has_text="지원자B").get_by_role("button", name="수락", exact=True).click(),
-            a2.locator("li.card", has_text="지원자C").get_by_role("button", name="수락", exact=True).click(),
+            a.locator("li.card", has_text="지원자B").get_by_role("button", name="함께하기", exact=True).click(),
+            a2.locator("li.card", has_text="지원자C").get_by_role("button", name="함께하기", exact=True).click(),
         )
         await asyncio.sleep(2)
         accepted = int(psql(f"select count(*) from applications where post_id='{pid}' and status='accepted'"))
@@ -199,7 +201,7 @@ async def main():
         await asyncio.sleep(61)  # 1분 작성 제한
         pid2 = await fill_post(a, "온라인 토익 스터디 모집합니다", capacity="4", mode="online")
         await apply(pb, pid2, "토익러")
-        await expect(pb.get_by_text("방장이 수락하면").first).to_be_visible()
+        await expect(pb.get_by_text("방장이 확인하면").first).to_be_visible()
         psql(f"update posts set deadline = current_date - 1, start_date = current_date where id='{pid2}'")
         await v.goto(BASE + "/")
         st2 = psql(f"select status||'/'||closed_reason from posts where id='{pid2}'")

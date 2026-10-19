@@ -41,19 +41,19 @@ export const SIDO = [
 export const POST_STATUS_LABEL: Record<string, string> = {
   recruiting: "모집 중",
   closed: "모집 마감",
-  finished: "스터디 종료",
+  finished: "완주했어요",
   deleted: "삭제됨",
   hidden: "숨김",
 };
 
 export const APP_STATUS_LABEL: Record<string, string> = {
-  pending: "결과 대기",
-  accepted: "수락됨",
-  rejected: "거절됨",
-  not_selected: "미선정",
-  cancelled: "취소함",
-  removed: "내보내짐",
-  post_deleted: "글 삭제됨",
+  pending: "확인 중",
+  accepted: "함께해요",
+  rejected: "이번엔 어려워요",
+  not_selected: "자리가 다 찼어요",
+  cancelled: "취소했어요",
+  removed: "팀에서 빠졌어요",
+  post_deleted: "글이 삭제됐어요",
 };
 
 export const REPORT_REASONS = {

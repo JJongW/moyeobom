@@ -20,7 +20,7 @@ export function PostCard({ p }: { p: PostRow }) {
   const dim = p.status !== "recruiting";
   return (
     <li>
-      <Link href={`/posts/${p.id}`} className={`card pressable block p-5 ${dim ? "opacity-70" : ""}`}>
+      <Link href={`/posts/${p.id}`} className={`card pressable flex h-full flex-col p-5 transition-shadow duration-200 hover:shadow-[0_6px_20px_rgb(31_26_23_/_0.08)] ${dim ? "opacity-70" : ""}`}>
         <div className="flex items-center gap-2 mb-2">
           <PostStatusBadge status={p.status} deadline={p.deadline} />
           <span className="badge badge-gray">{p.category}</span>
@@ -51,7 +51,7 @@ export function PostCard({ p }: { p: PostRow }) {
             </dd>
           </div>
         </dl>
-        <div className="mt-3 flex items-center justify-between text-[13px] text-text-3">
+        <div className="mt-auto pt-3 flex items-center justify-between text-[13px] text-text-3">
           <span>{p.author_nickname}</span>
           {p.tags.length ? <span className="truncate ml-3">{p.tags.map((t) => `#${t}`).join(" ")}</span> : null}
         </div>

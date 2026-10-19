@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState, useTransition } from "react";
+import { useActionState, useEffect, useId, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { FormState } from "@/lib/actions";
 import { REPORT_REASONS } from "@/lib/constants";
@@ -37,23 +37,24 @@ export function ActionButton({
   );
 }
 
-export function ApplySheet({ action, postTitle, path }: { action: (s: FormState, fd: FormData) => Promise<FormState>; postTitle: string; path: string }) {
+export function ApplySheet({ action, postTitle, path, triggerClassName = "btn btn-primary btn-lg w-full" }: { action: (s: FormState, fd: FormData) => Promise<FormState>; postTitle: string; path: string; triggerClassName?: string }) {
   const [state, formAction] = useActionState(action, {} as FormState);
   const e = state.errors ?? {};
   const v = state.values ?? {};
   const router = useRouter();
+  const u = useId(); // 모바일·데스크톱 시트가 함께 있어도 id가 겹치지 않게
   return (
     <Sheet
-      title={state.ok ? "지원했어요" : "지원하기"}
-      triggerClassName="btn btn-primary btn-lg w-full"
-      trigger="지원하기"
+      title={state.ok ? "손 들었어요" : "같이 할래요"}
+      triggerClassName={triggerClassName}
+      trigger="같이 할래요"
       onClose={() => { if (state.ok) router.refresh(); }}
     >
       {() =>
         state.ok ? (
           <div className="space-y-4">
             <p className="text-text-2">
-              방장이 수락하면 이 글에서 <b className="text-text">연락방 링크</b>가 보여요. 알림이 따로 가지 않으니, 링크를 저장해 두고 다시 들어와 확인해 주세요.
+              방장이 확인하면 이 글에서 <b className="text-text">우리 팀 연락방</b>이 열려요. 알림이 따로 가지 않으니, 링크를 저장해 두고 다시 들어와 확인해 주세요.
             </p>
             <div className="rounded-2xl bg-surface-2 p-4 text-[15px]">
               다른 기기에서는 이 글의 <b>“내 지원 확인”</b>에 닉네임과 확인 비밀번호를 넣으면 돼요.
@@ -63,24 +64,24 @@ export function ApplySheet({ action, postTitle, path }: { action: (s: FormState,
         ) : (
           <form action={formAction} noValidate className="space-y-5" key={JSON.stringify(v)}>
             <p className="text-text-2 -mt-2 line-clamp-2">「{postTitle}」</p>
-            <ErrorSummary errors={state.errors} message={state.message} labels={{ nickname: "닉네임", message: "지원 메시지", secret: "확인 비밀번호" }} />
-            <div id="f-nickname">
-              <label className="field-label" htmlFor="ap-nick">닉네임</label>
-              <input id="ap-nick" name="nickname" className="input" defaultValue={String(v.nickname ?? "")} maxLength={12} autoComplete="nickname" placeholder="한글·영문·숫자 2~12자" aria-invalid={!!e.nickname} aria-describedby={e.nickname ? "e-ap-nick" : undefined} />
-              <FieldError id="e-ap-nick" msg={e.nickname} />
+            <ErrorSummary errors={state.errors} message={state.message} labels={{ nickname: "닉네임", message: "한마디", secret: "확인 비밀번호" }} />
+            <div >
+              <label className="field-label" htmlFor={`ap-nick-${u}`}>닉네임</label>
+              <input id={`ap-nick-${u}`} name="nickname" className="input" defaultValue={String(v.nickname ?? "")} maxLength={12} autoComplete="nickname" placeholder="한글·영문·숫자 2~12자" aria-invalid={!!e.nickname} aria-describedby={e.nickname ? `e-ap-nick-${u}` : undefined} />
+              <FieldError id={`e-ap-nick-${u}`} msg={e.nickname} />
             </div>
-            <div id="f-message">
-              <label className="field-label" htmlFor="ap-msg">방장에게 한마디</label>
-              <textarea id="ap-msg" name="message" className="input !min-h-28" defaultValue={String(v.message ?? "")} maxLength={300} placeholder="어떤 목표로 참여하고 싶은지, 가능한 시간 등을 적어 주세요 (10~300자)" aria-invalid={!!e.message} aria-describedby={e.message ? "e-ap-msg" : undefined} />
-              <FieldError id="e-ap-msg" msg={e.message} />
+            <div >
+              <label className="field-label" htmlFor={`ap-msg-${u}`}>방장에게 한마디</label>
+              <textarea id={`ap-msg-${u}`} name="message" className="input !min-h-28" defaultValue={String(v.message ?? "")} maxLength={300} placeholder="어떤 목표로 참여하고 싶은지, 가능한 시간 등을 적어 주세요 (10~300자)" aria-invalid={!!e.message} aria-describedby={e.message ? `e-ap-msg-${u}` : undefined} />
+              <FieldError id={`e-ap-msg-${u}`} msg={e.message} />
             </div>
-            <div id="f-secret">
-              <label className="field-label" htmlFor="ap-secret">확인 비밀번호</label>
-              <input id="ap-secret" name="secret" type="password" className="input" maxLength={20} autoComplete="new-password" aria-invalid={!!e.secret} aria-describedby="h-ap-secret" />
-              <p id="h-ap-secret" className="field-help">다른 기기에서 결과를 확인할 때 써요 (4~20자).</p>
-              <FieldError id="e-ap-secret" msg={e.secret} />
+            <div >
+              <label className="field-label" htmlFor={`ap-secret-${u}`}>확인 비밀번호</label>
+              <input id={`ap-secret-${u}`} name="secret" type="password" className="input" maxLength={20} autoComplete="new-password" aria-invalid={!!e.secret} aria-describedby={`h-ap-secret-${u}`} />
+              <p id={`h-ap-secret-${u}`} className="field-help">다른 기기에서 결과를 확인할 때 써요 (4~20자).</p>
+              <FieldError id={`e-ap-secret-${u}`} msg={e.secret} />
             </div>
-            <SubmitButton pendingText="보내고 있어요…">지원 보내기</SubmitButton>
+            <SubmitButton pendingText="손 드는 중…">손 들기</SubmitButton>
           </form>
         )
       }

@@ -38,15 +38,15 @@ export default async function EditPost({ params }: { params: Promise<{ id: strin
     deadline: p.deadline, level: p.level ?? "", description: p.description, contactUrl: contact_url,
   };
   return (
-    <>
+    <div className="mx-auto max-w-[720px]">
       <div className="pt-3">
         <Link href={`/posts/${id}`} className="btn btn-ghost btn-sm !bg-transparent !px-1"><ChevronLeft size={20} aria-hidden /> 모집글</Link>
       </div>
       <h1 className="text-[24px] font-extrabold mt-2 mb-2">모집글 수정</h1>
       {p.pending_count + p.accepted_count > 0 ? (
-        <p className="mb-5 text-[15px] text-text-2">진행 방식·지역·요일·시간대·시작일을 바꾸면 지원자와 참여자에게 새 소식으로 알려져요.</p>
+        <p className="mb-5 text-[15px] text-text-2">진행 방식·지역·요일·시간대·시작일을 바꾸면 손 든 사람과 참여자에게 새 소식으로 알려져요.</p>
       ) : <div className="mb-5" />}
       <PostForm action={updatePost.bind(null, id)} initial={initial} isEdit today={today} maxStart={addDays(today, 90)} maxDeadline={addDays(today, 30)} />
-    </>
+    </div>
   );
 }

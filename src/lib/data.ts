@@ -82,7 +82,7 @@ export async function settlePendingOnClose(tx: any, postId: string, title: strin
     where post_id = ${postId} and status = 'pending' returning id`;
   for (const a of left) {
     await tx`insert into news (target_type, target_id, code, message)
-      values ('application', ${a.id}, 'N-04', ${`「${title}」 모집이 마감됐어요. 이번엔 함께하지 못하게 됐어요`})`;
+      values ('application', ${a.id}, 'N-04', ${`「${title}」은 자리가 다 찼어요. 다른 스터디도 둘러봐요`})`;
   }
 }
 

@@ -53,14 +53,14 @@ export default async function Board({ searchParams }: { searchParams: Promise<SP
 
   return (
     <>
-      <section className="pt-5 pb-4">
-        <h1 className="text-[26px] font-extrabold leading-tight tracking-tight">
-          같이 공부할 사람,<br />여기서 찾아요
+      <section className="pt-5 pb-4 lg:pt-10 lg:pb-6">
+        <h1 className="text-[28px] lg:text-[40px] font-extrabold leading-tight tracking-tight">
+          혼자 말고,<br className="lg:hidden" /> <span className="text-primary-ink">모여 봄.</span>
         </h1>
-        <p className="mt-2 text-text-2">가입 없이 글을 올리고 지원할 수 있어요.</p>
+        <p className="mt-2 text-text-2 lg:text-[18px]">가입 없이 링크 하나로, 같이 공부할 사람을 찾아요.</p>
       </section>
 
-      <form action="/" method="get" role="search" className="relative mb-3">
+      <form action="/" method="get" role="search" className="relative mb-3 lg:max-w-[560px]">
         {Object.entries(sp).flatMap(([k, v]) => (k === "q" || k === "page" ? [] : arr(v).map((x, i) => <input key={`${k}${i}`} type="hidden" name={k} value={x} />)))}
         <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-3" aria-hidden />
         <input name="q" defaultValue={f.q} className="input !pl-11 !bg-surface" placeholder="SQL, 토익, 포트폴리오…" aria-label="모집글 검색" enterKeyHint="search" />
@@ -92,27 +92,27 @@ export default async function Board({ searchParams }: { searchParams: Promise<SP
             </>
           ) : (
             <>
-              <p className="text-[18px] font-bold">아직 모집글이 없어요</p>
-              <p className="mt-1 text-text-2">첫 스터디를 열어 보세요.</p>
+              <p className="text-[18px] font-bold">아직 모인 사람이 없어요</p>
+              <p className="mt-1 text-text-2">첫 스터디를 열어 볼까요?</p>
               <Link href="/posts/new" className="btn btn-primary mt-5">모집글 쓰기</Link>
             </>
           )}
         </div>
       ) : (
-        <ul className={`grid gap-3 ${page === 1 ? "stagger" : ""}`}>
+        <ul className={`grid gap-3 lg:grid-cols-2 xl:grid-cols-3 lg:gap-4 ${page === 1 ? "stagger" : ""}`}>
           {posts.map((p) => <PostCard key={p.id} p={p} />)}
         </ul>
       )}
 
       {hasMore ? (
-        <div className="mt-4">
+        <div className="mt-4 lg:max-w-[360px] lg:mx-auto">
           <Link href={moreHref} scroll={false} className="btn btn-ghost w-full !bg-surface">더 보기</Link>
         </div>
       ) : null}
 
-      <div className="fixed inset-x-0 bottom-0 z-20 pointer-events-none">
+      <div className="fixed inset-x-0 bottom-0 z-20 pointer-events-none lg:hidden">
         <div className="mx-auto max-w-[720px] px-4 safe-bottom flex justify-end">
-          <Link href="/posts/new" className="btn btn-primary btn-lg pointer-events-auto shadow-[0_8px_24px_rgb(37_99_235_/_0.35)] !rounded-full !px-6">
+          <Link href="/posts/new" className="btn btn-primary btn-lg pointer-events-auto shadow-[0_8px_24px_rgb(201_73_42_/_0.35)] !rounded-full !px-6">
             <Plus size={20} aria-hidden /> 모집글 쓰기
           </Link>
         </div>

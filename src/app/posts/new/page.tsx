@@ -25,12 +25,12 @@ export default async function NewPost({ searchParams }: { searchParams: Promise<
     }
   }
   return (
-    <>
+    <div className="mx-auto max-w-[720px]">
       <div className="pt-3">
         <Link href="/" className="btn btn-ghost btn-sm !bg-transparent !px-1"><ChevronLeft size={20} aria-hidden /> 보드</Link>
       </div>
       <h1 className="text-[24px] font-extrabold mt-2 mb-5">스터디 모집글 쓰기</h1>
       <PostForm action={createPost} initial={initial} isEdit={false} today={today} maxStart={addDays(today, 90)} maxDeadline={addDays(today, 30)} />
-    </>
+    </div>
   );
 }

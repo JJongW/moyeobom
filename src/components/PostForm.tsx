@@ -193,7 +193,7 @@ export function PostForm({
         <div id="f-contactUrl">
           <label className="field-label" htmlFor="contactUrl">연락방 링크</label>
           <input id="contactUrl" name="contactUrl" type="url" inputMode="url" className="input" defaultValue={val("contactUrl")} placeholder="https://open.kakao.com/…" maxLength={200} {...inv("contactUrl")} />
-          <p className="field-help">수락한 사람에게만 보여요. 카카오 오픈채팅·디스코드 초대 링크 등.</p>
+          <p className="field-help">함께하기로 한 사람에게만 보여요. 카카오 오픈채팅·디스코드 초대 링크 등.</p>
           <FieldError id="e-contactUrl" msg={e.contactUrl} />
         </div>
       </section>

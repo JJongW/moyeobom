@@ -150,7 +150,7 @@ export async function finishPost(postId: string): Promise<FormState> {
   if (!(await isAuthor(postId))) return { message: "권한이 없어요." };
   await sql`update posts set status = 'finished', updated_at = now() where id = ${postId} and status = 'closed'`;
   revalidatePath(`/posts/${postId}`);
-  return { ok: true, message: "스터디를 종료로 표시했어요." };
+  return { ok: true, message: "완주를 축하해요! 함께해서 가능했어요." };
 }
 
 export async function deletePost(postId: string): Promise<FormState> {
@@ -201,7 +201,7 @@ export async function applyToPost(postId: string, _prev: FormState, fd: FormData
     const [a] = await tx<{ id: string }[]>`insert into applications (post_id, applicant_nickname, message, check_secret_hash, created_ip_hash)
       values (${postId}, ${nickname}, ${message}, ${hash}, ${ip}) returning id`;
     await tx`insert into grants (device_hash, target_type, target_id, role) values (${device}, 'application', ${a.id}, 'applicant')`;
-    await tx`insert into news (target_type, target_id, code, message) values ('post', ${postId}, 'N-01', ${`${nickname}님이 「${p[0].title}」에 지원했어요`})`;
+    await tx`insert into news (target_type, target_id, code, message) values ('post', ${postId}, 'N-01', ${`${nickname}님이 「${p[0].title}」에 손 들었어요`})`;
     return { id: a.id, minutes: Math.round((Date.now() - p[0].created_at.getTime()) / 60000) };
   });
   if ("err" in result) {
@@ -235,7 +235,7 @@ export async function cancelApplication(appId: string): Promise<FormState> {
   if (!r) return { message: "이미 처리된 지원이에요." };
   await logEvent("application_cancelled", await getDeviceHash(), { application_id: appId, prev_status: r.prev, by: "applicant" });
   revalidatePath(`/posts/${r.postId}`);
-  return { ok: true, message: r.prev === "accepted" ? "참여를 취소했어요." : "지원을 취소했어요." };
+  return { ok: true, message: r.prev === "accepted" ? "참여를 취소했어요." : "손 든 걸 취소했어요." };
 }
 
 export async function decideApplication(appId: string, decision: "accept" | "reject", _prev: FormState, fd?: FormData): Promise<FormState> {
@@ -258,7 +258,7 @@ export async function decideApplication(appId: string, decision: "accept" | "rej
       const acc = await tx<{ c: number }[]>`select count(*)::int c from applications where post_id = ${postId} and status = 'accepted'`;
       if (acc[0].c >= p[0].capacity - 1) return { err: "정원이 다 찼어요." };
       await tx`update applications set status = 'accepted', decided_at = now(), updated_at = now() where id = ${appId}`;
-      await tx`insert into news (target_type, target_id, code, message) values ('application', ${appId}, 'N-02', ${`「${p[0].title}」에 함께하게 됐어요! 연락방을 확인해 주세요`})`;
+      await tx`insert into news (target_type, target_id, code, message) values ('application', ${appId}, 'N-02', ${`「${p[0].title}」 오늘부터 우리 편! 연락방에서 인사해요`})`;
       let closedNow = false;
       if (acc[0].c + 1 >= p[0].capacity - 1) {
         await tx`update posts set status = 'closed', closed_reason = 'full', updated_at = now() where id = ${postId}`;
@@ -269,7 +269,7 @@ export async function decideApplication(appId: string, decision: "accept" | "rej
       return { ok: true, closedNow, hours: (Date.now() - a[0].created_at.getTime()) / 3_600_000 };
     } else {
       await tx`update applications set status = 'rejected', reject_reason = ${reason}, reason_visible = ${visible}, decided_at = now(), updated_at = now() where id = ${appId}`;
-      const msg = `「${p[0].title}」은 이번엔 함께하지 못하게 됐어요${visible && reason ? ` · 방장 메모: ${reason}` : ""}`;
+      const msg = `「${p[0].title}」은 이번엔 함께하기 어려워요. 다른 스터디도 있어요${visible && reason ? ` · 방장 메모: ${reason}` : ""}`;
       await tx`insert into news (target_type, target_id, code, message) values ('application', ${appId}, 'N-03', ${msg})`;
       return { ok: true, closedNow: false, hours: (Date.now() - a[0].created_at.getTime()) / 3_600_000 };
     }
@@ -281,7 +281,7 @@ export async function decideApplication(appId: string, decision: "accept" | "rej
   revalidatePath(`/posts/${postId}/applicants`);
   return {
     ok: true,
-    message: decision === "accept" ? (r.closedNow ? "수락했어요. 정원이 다 차서 모집이 마감됐어요." : "수락했어요.") : "거절했어요.",
+    message: decision === "accept" ? (r.closedNow ? "함께하기로 했어요. 자리가 다 차서 모집이 마감됐어요." : "함께하기로 했어요.") : "다음에 함께하자고 전했어요.",
     data: decision === "accept" ? { undo: appId } : undefined,
   };
 }
@@ -307,7 +307,7 @@ export async function undoAccept(appId: string): Promise<FormState> {
     return true;
   });
   revalidatePath(`/posts/${postId}/applicants`);
-  return ok ? { ok: true, message: "수락을 되돌렸어요." } : { message: "되돌릴 수 있는 시간이 지났어요." };
+  return ok ? { ok: true, message: "되돌렸어요." } : { message: "되돌릴 수 있는 시간이 지났어요." };
 }
 
 export async function removeParticipant(appId: string, _prev: FormState, fd: FormData): Promise<FormState> {

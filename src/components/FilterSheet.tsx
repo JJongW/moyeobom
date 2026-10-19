@@ -17,7 +17,7 @@ export function FilterSheet({ f, activeCount }: { f: F; activeCount: number }) {
       triggerClassName="btn btn-ghost btn-sm !bg-surface shrink-0"
       trigger={
         <>
-          <SlidersHorizontal size={16} aria-hidden /> 필터{activeCount ? <b className="text-primary"> {activeCount}</b> : null}
+          <SlidersHorizontal size={16} aria-hidden /> 필터{activeCount ? <b className="text-primary-ink"> {activeCount}</b> : null}
         </>
       }
     >

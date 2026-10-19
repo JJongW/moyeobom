@@ -19,7 +19,7 @@ export default function Privacy() {
         </section>
         <section>
           <h2 className="font-bold mb-1">누가 볼 수 있나요</h2>
-          <p>모집글은 링크를 가진 누구나 볼 수 있어요. 지원 메시지는 방장만, 연락방 링크는 방장과 수락된 사람만 볼 수 있어요.</p>
+          <p>모집글은 링크를 가진 누구나 볼 수 있어요. 지원 메시지는 방장만, 연락방 링크는 방장과 함께하기로 한 사람만 볼 수 있어요.</p>
         </section>
         <section>
           <h2 className="font-bold mb-1">언제 지우나요</h2>
