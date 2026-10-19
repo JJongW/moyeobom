@@ -50,7 +50,8 @@ Next.js 16 (App Router, Server Actions) · PostgreSQL(Supabase 권장) · Tailwi
    | `CRON_SECRET` | 아무 무작위 문자열 |
    | `PILOT_DELETE_DATE` | 데이터 삭제 예정일 `YYYY-MM-DD` (비우면 배너 없음) |
 3. **Deploy** → 1~2분 뒤 `https://<프로젝트>.vercel.app` 주소가 생겨요
-4. 마감 배치: `vercel.json`에 매일 00:05(KST) 실행이 들어 있어요. 조회할 때도 마감 처리를 하므로 배치가 멈춰도 동작해요.
+4. 서버 위치: `vercel.json`에 서울 리전(`icn1`)을 지정해 두었어요. Supabase도 서울로 만들어야 화면이 빨라요.
+5. 마감 배치: `vercel.json`에 매일 00:05(KST) 실행이 들어 있어요. 조회할 때도 마감 처리를 하므로 배치가 멈춰도 동작해요.
 
 ### 4) 런칭 체크리스트 (PRD §23)
 - [ ] 휴대폰으로 글 쓰기 → 다른 브라우저(시크릿 창)로 지원 → 수락 → 연락방 링크 보이는지 확인

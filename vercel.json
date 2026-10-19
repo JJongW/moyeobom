@@ -1,3 +1,11 @@
 {
-  "crons": [{ "path": "/api/cron/close", "schedule": "5 15 * * *" }]
+  "crons": [
+    {
+      "path": "/api/cron/close",
+      "schedule": "5 15 * * *"
+    }
+  ],
+  "regions": [
+    "icn1"
+  ]
 }

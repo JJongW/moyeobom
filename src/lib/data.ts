@@ -42,7 +42,7 @@ export type ApplicationRow = {
 };
 
 /** 공개 필드만 고르는 SELECT 목록 (BR-016). contact_url·해시는 절대 넣지 않는다 */
-const PUBLIC_COLS = sql`
+const publicCols = () => sql`
   p.id, p.author_nickname, p.title, p.category, p.tags, p.mode, p.region_sido, p.region_sigungu,
   p.online_tool, p.days, p.time_slots, to_char(p.start_date,'YYYY-MM-DD') as start_date,
   p.duration_weeks, p.capacity, to_char(p.deadline,'YYYY-MM-DD') as deadline, p.level,
@@ -118,7 +118,7 @@ export async function listPosts(f: BoardFilters) {
         : sql`case when p.status = 'recruiting' then 0 else 1 end, p.created_at desc`;
 
   const rows = await sql<PostRow[]>`
-    select ${PUBLIC_COLS} from posts p
+    select ${publicCols()} from posts p
     where p.status in ${sql(statuses)}
       ${f.category?.length ? sql`and p.category in ${sql(f.category)}` : sql``}
       ${modes ? sql`and p.mode in ${sql(modes)}` : sql``}
@@ -135,7 +135,7 @@ export async function listPosts(f: BoardFilters) {
 
 export async function getPost(id: string): Promise<PostRow | null> {
   if (!/^[0-9a-f-]{36}$/i.test(id)) return null;
-  const rows = await sql<PostRow[]>`select ${PUBLIC_COLS} from posts p where p.id = ${id}`;
+  const rows = await sql<PostRow[]>`select ${publicCols()} from posts p where p.id = ${id}`;
   return rows[0] ?? null;
 }
 
@@ -191,7 +191,7 @@ export async function unreadCount(deviceHash: string | null): Promise<number> {
 export async function myActivity(deviceHash: string | null) {
   if (!deviceHash) return { posts: [], applications: [] };
   const posts = await sql<(PostRow & { unread: number })[]>`
-    select ${PUBLIC_COLS},
+    select ${publicCols()},
       (select count(*)::int from news n where n.target_type='post' and n.target_id = p.id and n.created_at > g.last_seen_at) as unread
     from grants g join posts p on p.id = g.target_id
     where g.device_hash = ${deviceHash} and g.target_type = 'post' and p.status <> 'deleted'
