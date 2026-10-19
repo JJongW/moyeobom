@@ -1,6 +1,7 @@
 import "server-only";
 import { sql } from "./db";
 import { PAGE_SIZE } from "./constants";
+import { demoPosts, isDemo } from "./demo";
 
 export type PostRow = {
   id: string;
@@ -56,6 +57,7 @@ const publicCols = () => sql`
  * 주요 조회 전에 호출한다. 마감일 23:59:59 KST가 지나면 마감.
  */
 export async function closeExpiredPosts(): Promise<number> {
+  if (isDemo) return 0;
   return sql.begin(async (tx) => {
     const closed = await tx<{ id: string; title: string }[]>`
       update posts set status = 'closed', closed_reason = 'deadline', updated_at = now()
@@ -101,6 +103,7 @@ export type BoardFilters = {
 };
 
 export async function listPosts(f: BoardFilters) {
+  if (isDemo) return listDemoPosts(f);
   const page = Math.max(1, f.page ?? 1);
   const limit = PAGE_SIZE * page; // "더 보기"는 누적해서 다시 그린다
   const statuses = f.includeClosed ? ["recruiting", "closed", "finished"] : ["recruiting"];
@@ -133,18 +136,51 @@ export async function listPosts(f: BoardFilters) {
   return { posts: rows.slice(0, limit), hasMore: rows.length > limit, page };
 }
 
+/** 더미 모드: listPosts와 같은 필터·정렬을 메모리에서 적용 */
+function listDemoPosts(f: BoardFilters) {
+  const page = Math.max(1, f.page ?? 1);
+  const limit = PAGE_SIZE * page;
+  const statuses = f.includeClosed ? ["recruiting", "closed", "finished"] : ["recruiting"];
+  const modes = f.mode?.length
+    ? new Set(f.mode.flatMap((m) => (m === "online" || m === "offline" ? [m, "hybrid"] : [m])))
+    : null;
+  const q = f.q && [...f.q].length >= 2 ? f.q.toLowerCase() : null;
+  const seats = (p: PostRow) => p.capacity - 1 - p.accepted_count;
+  const rows = demoPosts()
+    .filter((p) => statuses.includes(p.status))
+    .filter((p) => !f.category?.length || f.category.includes(p.category))
+    .filter((p) => !modes || modes.has(p.mode))
+    .filter((p) => !f.sido || p.mode === "online" || p.region_sido === f.sido)
+    .filter((p) => !f.sigungu || p.mode === "online" || p.region_sigungu === f.sigungu)
+    .filter((p) => !f.days?.length || p.days.some((d) => f.days!.includes(d)))
+    .filter((p) => !f.slots?.length || p.time_slots.some((t) => f.slots!.includes(t)))
+    .filter((p) => !f.level || p.level === f.level)
+    .filter((p) => !q || [p.title, p.description, p.tags.join(" ")].some((t) => t.toLowerCase().includes(q)))
+    .sort((a, b) => {
+      const open = (a.status === "recruiting" ? 0 : 1) - (b.status === "recruiting" ? 0 : 1);
+      if (open) return open;
+      if (f.sort === "deadline" && a.deadline !== b.deadline) return a.deadline < b.deadline ? -1 : 1;
+      if (f.sort === "seats" && seats(a) !== seats(b)) return seats(b) - seats(a);
+      return b.created_at.getTime() - a.created_at.getTime();
+    });
+  return { posts: rows.slice(0, limit), hasMore: rows.length > limit, page };
+}
+
 export async function getPost(id: string): Promise<PostRow | null> {
+  if (isDemo) return demoPosts().find((p) => p.id === id) ?? null;
   if (!/^[0-9a-f-]{36}$/i.test(id)) return null;
   const rows = await sql<PostRow[]>`select ${publicCols()} from posts p where p.id = ${id}`;
   return rows[0] ?? null;
 }
 
 export async function getContactUrl(postId: string): Promise<string | null> {
+  if (isDemo) return null;
   const r = await sql<{ contact_url: string }[]>`select contact_url from posts where id = ${postId}`;
   return r[0]?.contact_url ?? null;
 }
 
 export async function getGrants(deviceHash: string | null, targetType: "post" | "application", ids: string[]) {
+  if (isDemo) return [] as { target_id: string; last_seen_at: Date }[];
   if (!deviceHash || ids.length === 0) return [] as { target_id: string; last_seen_at: Date }[];
   return sql<{ target_id: string; last_seen_at: Date }[]>`
     select target_id, last_seen_at from grants
@@ -152,6 +188,7 @@ export async function getGrants(deviceHash: string | null, targetType: "post" | 
 }
 
 export async function hasGrant(deviceHash: string | null, targetType: "post" | "application", id: string) {
+  if (isDemo) return false;
   if (!deviceHash) return false;
   const r = await sql`select 1 from grants where device_hash = ${deviceHash} and target_type = ${targetType} and target_id = ${id}`;
   return r.length > 0;
@@ -159,6 +196,7 @@ export async function hasGrant(deviceHash: string | null, targetType: "post" | "
 
 /** 이 브라우저가 이 글에 대해 가진 지원(활성 우선, 최신 순) */
 export async function getMyApplicationForPost(deviceHash: string | null, postId: string) {
+  if (isDemo) return null;
   if (!deviceHash) return null;
   const r = await sql<ApplicationRow[]>`
     select a.* from applications a
@@ -169,17 +207,20 @@ export async function getMyApplicationForPost(deviceHash: string | null, postId:
 }
 
 export async function listApplications(postId: string) {
+  if (isDemo) return [] as (ApplicationRow & { waiting_long: boolean })[];
   return sql<(ApplicationRow & { waiting_long: boolean })[]>`
     select *, (status = 'pending' and created_at < now() - interval '72 hours') as waiting_long from applications where post_id = ${postId}
     order by case status when 'pending' then 0 when 'accepted' then 1 else 2 end, created_at asc`;
 }
 
 export async function markSeen(deviceHash: string | null, targetType: "post" | "application", id: string) {
+  if (isDemo) return;
   if (!deviceHash) return;
   await sql`update grants set last_seen_at = now() where device_hash = ${deviceHash} and target_type = ${targetType} and target_id = ${id}`;
 }
 
 export async function unreadCount(deviceHash: string | null): Promise<number> {
+  if (isDemo) return 0;
   if (!deviceHash) return 0;
   const r = await sql<{ c: number }[]>`
     select count(*)::int c from news n
@@ -189,6 +230,7 @@ export async function unreadCount(deviceHash: string | null): Promise<number> {
 }
 
 export async function myActivity(deviceHash: string | null) {
+  if (isDemo) return { posts: [] as (PostRow & { unread: number })[], applications: [] as (ApplicationRow & { post_title: string; post_status: string; unread: number; latest_news: string | null })[] };
   if (!deviceHash) return { posts: [], applications: [] };
   const posts = await sql<(PostRow & { unread: number })[]>`
     select ${publicCols()},
@@ -207,6 +249,7 @@ export async function myActivity(deviceHash: string | null) {
 }
 
 export async function latestNews(targetType: "post" | "application", id: string, since?: Date) {
+  if (isDemo) return [] as { code: string; message: string; created_at: Date }[];
   return sql<{ code: string; message: string; created_at: Date }[]>`
     select code, message, created_at from news
     where target_type = ${targetType} and target_id = ${id}
@@ -215,6 +258,7 @@ export async function latestNews(targetType: "post" | "application", id: string,
 }
 
 export async function logEvent(name: string, anonId: string | null, props: Record<string, unknown> = {}) {
+  if (isDemo) return;
   try {
     await sql`insert into events (name, anon_id, props) values (${name}, ${anonId ? anonId.slice(0, 16) : null}, ${sql.json(props as never)})`;
   } catch {

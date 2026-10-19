@@ -39,6 +39,8 @@ Next.js 16 (App Router, Server Actions) · PostgreSQL(Supabase 권장) · Tailwi
    `.env.local`은 `.gitignore`에 있어 올라가지 않아요.
 
 ### 3) Vercel에 배포
+> **데모 모드**: `DATABASE_URL`을 넣지 않으면 DB 없이 `src/lib/demo.ts`의 예시글 10개로 보드가 떠요. 글쓰기·지원 같은 저장 동작은 "미리보기라 저장되지 않아요" 안내만 보여요.
+
 1. https://vercel.com 에서 GitHub로 로그인 → **Add New → Project** → 방금 저장소 **Import**
 2. **Environment Variables**에 아래 5개 입력 (`.env.example` 참고)
 

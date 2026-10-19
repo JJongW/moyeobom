@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { isAdmin } from "@/lib/security";
 import { sql } from "@/lib/db";
+import { DEMO_MESSAGE, isDemo } from "@/lib/demo";
 import { adminDeleteAll, adminLogin, adminLogout, adminResetSecret, adminSetHidden } from "@/lib/actions";
 import { AdminLoginForm, DeleteAllForm, ResetSecretButton } from "@/components/AdminUI";
 import { ActionButton } from "@/components/actions-ui";
@@ -12,6 +13,7 @@ import { REPORT_REASONS } from "@/lib/constants";
 export const metadata: Metadata = { title: "운영자" };
 
 export default async function Admin({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+  if (isDemo) return <p className="card p-6 mt-6">{DEMO_MESSAGE}</p>;
   if (!(await isAdmin())) return <AdminLoginForm action={adminLogin} />;
   const { q = "" } = await searchParams;
   const like = q ? `%${q}%` : null;

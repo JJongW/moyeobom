@@ -11,6 +11,7 @@ import { allow, hit, secretLockRemaining } from "./rate";
 import { parseApplyForm, parsePostForm, validateNickname, validateSecret, formValues, type FieldErrors } from "./validation";
 import { closeExpiredPosts, logEvent, settlePendingOnClose } from "./data";
 import { REPORT_REASONS } from "./constants";
+import { DEMO_MESSAGE, isDemo } from "./demo";
 
 export type FormState = {
   ok?: boolean;
@@ -50,6 +51,7 @@ async function news(targetType: "post" | "application", id: string, code: string
 
 export async function createPost(_prev: FormState, fd: FormData): Promise<FormState> {
   const values = formValues(fd);
+  if (isDemo) return { message: DEMO_MESSAGE, values };
   const { input, errors } = parsePostForm(fd, { isEdit: false });
   const nickname = String(fd.get("nickname") ?? "").trim();
   const secret = String(fd.get("secret") ?? "");
@@ -89,6 +91,7 @@ export async function createPost(_prev: FormState, fd: FormData): Promise<FormSt
 
 export async function updatePost(postId: string, _prev: FormState, fd: FormData): Promise<FormState> {
   const values = formValues(fd);
+  if (isDemo) return { message: DEMO_MESSAGE, values };
   if (!(await isAuthor(postId))) return { message: "이 글을 고칠 권한이 없어요. '내 글 관리'에서 비밀번호를 확인해 주세요.", values };
   const cur = await sql<{ status: string; title: string; mode: string; region_sido: string | null; region_sigungu: string | null; days: string[]; time_slots: string[]; start_date: string; capacity: number; contact_url: string; accepted: number }[]>`
     select status, title, mode, region_sido, region_sigungu, days, time_slots, to_char(start_date,'YYYY-MM-DD') start_date, capacity, contact_url,
@@ -133,6 +136,7 @@ export async function updatePost(postId: string, _prev: FormState, fd: FormData)
 }
 
 export async function closePost(postId: string): Promise<FormState> {
+  if (isDemo) return { message: DEMO_MESSAGE };
   if (!(await isAuthor(postId))) return { message: "권한이 없어요." };
   const done = await sql.begin(async (tx) => {
     const r = await tx<{ title: string }[]>`update posts set status = 'closed', closed_reason = 'manual', updated_at = now()
@@ -147,6 +151,7 @@ export async function closePost(postId: string): Promise<FormState> {
 }
 
 export async function finishPost(postId: string): Promise<FormState> {
+  if (isDemo) return { message: DEMO_MESSAGE };
   if (!(await isAuthor(postId))) return { message: "권한이 없어요." };
   await sql`update posts set status = 'finished', updated_at = now() where id = ${postId} and status = 'closed'`;
   revalidatePath(`/posts/${postId}`);
@@ -154,6 +159,7 @@ export async function finishPost(postId: string): Promise<FormState> {
 }
 
 export async function deletePost(postId: string): Promise<FormState> {
+  if (isDemo) return { message: DEMO_MESSAGE };
   if (!(await isAuthor(postId))) return { message: "권한이 없어요." };
   const res = await sql.begin(async (tx) => {
     const p = await tx<{ title: string; accepted: number }[]>`
@@ -176,6 +182,7 @@ export async function deletePost(postId: string): Promise<FormState> {
 
 export async function applyToPost(postId: string, _prev: FormState, fd: FormData): Promise<FormState> {
   const values = formValues(fd);
+  if (isDemo) return { message: DEMO_MESSAGE, values };
   if (!isUuid(postId)) return { message: "잘못된 요청이에요." };
   const { nickname, message, secret, errors } = parseApplyForm(fd);
   if (Object.keys(errors).length) return { errors, values };
@@ -214,6 +221,7 @@ export async function applyToPost(postId: string, _prev: FormState, fd: FormData
 }
 
 export async function cancelApplication(appId: string): Promise<FormState> {
+  if (isDemo) return { message: DEMO_MESSAGE };
   if (!(await isApplicant(appId))) return { message: "권한이 없어요." };
   const r = await sql.begin(async (tx) => {
     const a = await tx<{ status: string; post_id: string; title: string; nick: string; deadline_passed: boolean; pstatus: string; closed_reason: string | null }[]>`
@@ -239,6 +247,7 @@ export async function cancelApplication(appId: string): Promise<FormState> {
 }
 
 export async function decideApplication(appId: string, decision: "accept" | "reject", _prev: FormState, fd?: FormData): Promise<FormState> {
+  if (isDemo) return { message: DEMO_MESSAGE };
   if (!isUuid(appId)) return { message: "잘못된 요청이에요." };
   const a0 = await sql<{ post_id: string }[]>`select post_id from applications where id = ${appId}`;
   if (!a0[0] || !(await isAuthor(a0[0].post_id))) return { message: "권한이 없어요." };
@@ -288,6 +297,7 @@ export async function decideApplication(appId: string, decision: "accept" | "rej
 
 /** 수락 직후 되돌리기 (FR-007, 30초 이내·마감으로 다른 지원이 정리되지 않은 경우만) */
 export async function undoAccept(appId: string): Promise<FormState> {
+  if (isDemo) return { message: DEMO_MESSAGE };
   const a0 = await sql<{ post_id: string }[]>`select post_id from applications where id = ${appId}`;
   if (!a0[0] || !(await isAuthor(a0[0].post_id))) return { message: "권한이 없어요." };
   const postId = a0[0].post_id;
@@ -311,6 +321,7 @@ export async function undoAccept(appId: string): Promise<FormState> {
 }
 
 export async function removeParticipant(appId: string, _prev: FormState, fd: FormData): Promise<FormState> {
+  if (isDemo) return { message: DEMO_MESSAGE };
   const reason = String(fd.get("reason") ?? "").trim();
   if ([...reason].length < 2 || [...reason].length > 100) return { errors: { reason: "사유를 2~100자로 적어 주세요" } };
   const a0 = await sql<{ post_id: string }[]>`select post_id from applications where id = ${appId}`;
@@ -329,6 +340,7 @@ export async function removeParticipant(appId: string, _prev: FormState, fd: For
 /* ── 다른 기기에서 확인 (UF-1 4번) ─────────────────── */
 
 export async function verifyAuthor(postId: string, _prev: FormState, fd: FormData): Promise<FormState> {
+  if (isDemo) return { message: DEMO_MESSAGE };
   if (!isUuid(postId)) return { message: "잘못된 요청이에요." };
   const secret = String(fd.get("secret") ?? "");
   const ip = await getIpHash();
@@ -348,6 +360,7 @@ export async function verifyAuthor(postId: string, _prev: FormState, fd: FormDat
 }
 
 export async function verifyApplicant(postId: string, _prev: FormState, fd: FormData): Promise<FormState> {
+  if (isDemo) return { message: DEMO_MESSAGE };
   if (!isUuid(postId)) return { message: "잘못된 요청이에요." };
   const nickname = String(fd.get("nickname") ?? "").trim();
   const secret = String(fd.get("secret") ?? "");
@@ -383,6 +396,7 @@ export async function forgetThisBrowser(): Promise<FormState> {
 /* ── 신고 (FR-014) ────────────────────────────────── */
 
 export async function reportPost(postId: string, _prev: FormState, fd: FormData): Promise<FormState> {
+  if (isDemo) return { message: DEMO_MESSAGE };
   const reason = String(fd.get("reason") ?? "");
   if (!(reason in REPORT_REASONS)) return { errors: { reason: "사유를 골라 주세요" } };
   const memo = String(fd.get("memo") ?? "").trim().slice(0, 100) || null;
@@ -412,6 +426,7 @@ export async function reportPost(postId: string, _prev: FormState, fd: FormData)
 /* ── 운영자 (FR-016, FR-022) ──────────────────────── */
 
 export async function adminLogin(_prev: FormState, fd: FormData): Promise<FormState> {
+  if (isDemo) return { message: DEMO_MESSAGE };
   const ip = await getIpHash();
   const lock = await secretLockRemaining(ip, "admin");
   if (lock) return { message: `${lock}분 뒤에 다시 시도해 주세요.` };
@@ -432,6 +447,7 @@ async function requireAdmin() {
 }
 
 export async function adminSetHidden(postId: string, hidden: boolean): Promise<FormState> {
+  if (isDemo) return { message: DEMO_MESSAGE };
   await requireAdmin();
   if (hidden) {
     await sql`update posts set status_before_hidden = status, status = 'hidden', updated_at = now() where id = ${postId} and status <> 'hidden' and status <> 'deleted'`;
@@ -446,6 +462,7 @@ export async function adminSetHidden(postId: string, hidden: boolean): Promise<F
 }
 
 export async function adminResetSecret(kind: "post" | "application", id: string): Promise<FormState> {
+  if (isDemo) return { message: DEMO_MESSAGE };
   await requireAdmin();
   const temp = randomTempSecret();
   const hash = await hashSecret(temp);
@@ -455,6 +472,7 @@ export async function adminResetSecret(kind: "post" | "application", id: string)
 }
 
 export async function adminDeleteAll(_prev: FormState, fd: FormData): Promise<FormState> {
+  if (isDemo) return { message: DEMO_MESSAGE };
   await requireAdmin();
   if (String(fd.get("confirm") ?? "") !== "전체 삭제") return { errors: { confirm: "'전체 삭제'라고 정확히 적어 주세요" } };
   await sql.begin(async (tx) => {
