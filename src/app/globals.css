@@ -1,0 +1,196 @@
+@import "tailwindcss";
+
+/*
+ * 스터디보드 디자인 토큰
+ * - ui-ux-pro-max: Minimalism & Swiss Style / Focus blue + session green / 대비 4.5:1
+ * - 토스풍 원칙(자체 구현, TDS 컴포넌트 미사용): 큰 제목, 한 화면 한 행동, 넉넉한 여백, 회색 배경 위 흰 카드
+ * - Emil Kowalski: 강한 ease-out 곡선, 300ms 이하, 눌림 scale(0.97), reduced-motion 존중
+ */
+:root {
+  --bg: #f3f4f6;
+  --surface: #ffffff;
+  --surface-2: #f6f7f9;
+  --text: #15181e;
+  --text-2: #4b5563;
+  --text-3: #5f6672;
+  --line: #e5e7eb;
+  --primary: #2563eb;
+  --primary-press: #1d4fd8;
+  --primary-soft: #e8efff;
+  --on-primary: #ffffff;
+  --success: #047857;
+  --success-soft: #e3f5ee;
+  --warning: #a75006;
+  --warning-soft: #fdf1e2;
+  --danger: #c42020;
+  --danger-soft: #fdecec;
+  --focus: #2563eb;
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --radius-card: 20px;
+  --radius-control: 14px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1115;
+    --surface: #181b21;
+    --surface-2: #20242b;
+    --text: #f1f2f4;
+    --text-2: #c2c6ce;
+    --text-3: #9aa0aa;
+    --line: #2c313a;
+    --primary: #5b8cff;
+    --primary-press: #8fb0ff;
+    --primary-soft: #1d2a47;
+    --on-primary: #0b1020;
+    --success: #34d399;
+    --success-soft: #11291f;
+    --warning: #f5b454;
+    --warning-soft: #33260f;
+    --danger: #f87171;
+    --danger-soft: #3a1717;
+    --focus: #8fb0ff;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-text: var(--text);
+  --color-text-2: var(--text-2);
+  --color-text-3: var(--text-3);
+  --color-line: var(--line);
+  --color-primary: var(--primary);
+  --color-primary-soft: var(--primary-soft);
+  --color-on-primary: var(--on-primary);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+}
+
+html { -webkit-text-size-adjust: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.55;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 8px; }
+
+/* ── 버튼: 눌렀을 때 바로 반응 (Emil: scale 0.97, 160ms ease-out) ── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 48px; padding: 0 18px; border-radius: var(--radius-control);
+  font-weight: 650; font-size: 16px; cursor: pointer; user-select: none;
+  transition: transform 160ms var(--ease-out), background-color 160ms ease, opacity 160ms ease;
+}
+.btn:active:not(:disabled) { transform: scale(0.97); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-primary { background: var(--primary); color: var(--on-primary); }
+.btn-primary:hover:not(:disabled) { background: var(--primary-press); }
+.btn-secondary { background: var(--primary-soft); color: var(--primary-press); }
+.btn-ghost { background: var(--surface-2); color: var(--text); }
+.btn-danger { background: var(--danger-soft); color: var(--danger); }
+.btn-lg { min-height: 56px; font-size: 17px; border-radius: 16px; }
+.btn-sm { min-height: 36px; padding: 0 12px; font-size: 14px; border-radius: 10px; }
+@media (hover: hover) and (pointer: fine) {
+  .btn-ghost:hover:not(:disabled) { background: var(--line); }
+}
+
+.card { background: var(--surface); border-radius: var(--radius-card); }
+.pressable { transition: transform 160ms var(--ease-out); }
+.pressable:active { transform: scale(0.985); }
+
+/* ── 입력 ── */
+.field-label { display: block; font-size: 14px; font-weight: 600; color: var(--text-2); margin-bottom: 8px; }
+.input {
+  width: 100%; min-height: 52px; padding: 14px 16px; border-radius: var(--radius-control);
+  background: var(--surface-2); color: var(--text); font-size: 16px; border: 2px solid transparent;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+.input::placeholder { color: var(--text-3); }
+.input:focus { outline: none; border-color: var(--primary); background: var(--surface); }
+.input[aria-invalid="true"] { border-color: var(--danger); }
+textarea.input { min-height: 140px; resize: vertical; line-height: 1.6; }
+.field-error { color: var(--danger); font-size: 14px; margin-top: 6px; font-weight: 500; }
+.field-help { color: var(--text-3); font-size: 13px; margin-top: 6px; }
+
+/* 칩형 체크박스·라디오 */
+.chip { position: relative; display: inline-flex; }
+.chip input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+.chip span {
+  display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 999px;
+  background: var(--surface-2); color: var(--text-2); font-weight: 600; font-size: 15px;
+  transition: background-color 160ms ease, color 160ms ease, transform 160ms var(--ease-out);
+}
+.chip input:checked + span { background: var(--primary); color: var(--on-primary); }
+.chip input:focus-visible + span { outline: 3px solid var(--focus); outline-offset: 2px; }
+.chip:active span { transform: scale(0.96); }
+
+/* 배지 */
+.badge { display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0 8px; border-radius: 8px; font-size: 13px; font-weight: 650; white-space: nowrap; }
+.badge-blue { background: var(--primary-soft); color: var(--primary-press); }
+.badge-green { background: var(--success-soft); color: var(--success); }
+.badge-orange { background: var(--warning-soft); color: var(--warning); }
+.badge-gray { background: var(--surface-2); color: var(--text-3); }
+.badge-red { background: var(--danger-soft); color: var(--danger); }
+
+/* ── 바텀시트 (dialog). 들어올 때 iOS 드로어 곡선, 나갈 때 더 빠르게 ── */
+dialog.sheet {
+  margin: auto auto 0; width: 100%; max-width: 560px; max-height: 88dvh; padding: 0; border: 0;
+  border-radius: 24px 24px 0 0; background: var(--surface); color: var(--text);
+  transform: translateY(0); opacity: 1;
+  transition: transform 300ms var(--ease-drawer), opacity 200ms ease, display 300ms allow-discrete, overlay 300ms allow-discrete;
+}
+dialog.sheet:not([open]) { transform: translateY(100%); transition-duration: 200ms; }
+@starting-style { dialog.sheet[open] { transform: translateY(100%); } }
+dialog.sheet::backdrop { background: rgb(0 0 0 / 0); transition: background-color 250ms ease, display 250ms allow-discrete, overlay 250ms allow-discrete; }
+dialog.sheet[open]::backdrop { background: rgb(0 0 0 / 0.45); }
+@starting-style { dialog.sheet[open]::backdrop { background: rgb(0 0 0 / 0); } }
+@media (min-width: 640px) {
+  dialog.sheet { margin: auto; border-radius: 24px; }
+  dialog.sheet:not([open]) { transform: translateY(16px); opacity: 0; }
+  @starting-style { dialog.sheet[open] { transform: translateY(16px); opacity: 0; } }
+}
+
+/* 토스트 */
+.toast {
+  position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom)); z-index: 60;
+  transform: translateX(-50%); max-width: calc(100% - 32px);
+  background: #1f2329; color: #fff; padding: 12px 16px; border-radius: 14px; font-weight: 600; font-size: 15px;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
+  transition: opacity 200ms ease, transform 300ms var(--ease-out);
+}
+@starting-style { .toast { opacity: 0; transform: translate(-50%, 12px); } }
+
+/* 목록 첫 진입 시 짧은 스태거 (30~80ms) */
+.stagger > * { animation: rise 280ms var(--ease-out) both; }
+.stagger > *:nth-child(2) { animation-delay: 40ms; }
+.stagger > *:nth-child(3) { animation-delay: 80ms; }
+.stagger > *:nth-child(4) { animation-delay: 120ms; }
+.stagger > *:nth-child(n+5) { animation-delay: 160ms; }
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } }
+
+.skeleton { background: linear-gradient(90deg, var(--surface-2), var(--line), var(--surface-2)); background-size: 200% 100%; animation: shimmer 1.2s linear infinite; border-radius: 12px; }
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-property: opacity, background-color, color !important; }
+  .stagger > * { animation: none; }
+}
+
+.safe-bottom { padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
